@@ -62,7 +62,7 @@ public:
     friend class AP_GPS_SIRF;
     friend class AP_GPS_UBLOX;
     friend class AP_GPS_Backend;
-
+    friend class AP_GPS_DUALNOVA;
     // constructor
 	AP_GPS();
 
@@ -83,7 +83,8 @@ public:
         GPS_TYPE_QURT  = 12,
         GPS_TYPE_ERB = 13,
         GPS_TYPE_MAV = 14,
-        GPS_TYPE_NOVA = 15
+        GPS_TYPE_NOVA = 15,
+        GPS_TYPE_DUALNOVA = 16
     };
 
     /// GPS status codes
@@ -141,6 +142,12 @@ public:
         bool have_horizontal_accuracy:1;    ///< does GPS give horizontal position accuracy? Set to true only once available.
         bool have_vertical_accuracy:1;      ///< does GPS give vertical position accuracy? Set to true only once available.
         uint32_t last_gps_time_ms;          ///< the system time we got the last GPS timestamp, milliseconds
+        float heading;                      ///< heading in degrees, get by dual noval gps
+        float pitch;                        ///< pitch in degrees, get by dual noval gps
+        float heading_accuracy;             ///< heading standard deviation in degrees, get by dual noval gps
+        float pitch_accuracy;               ///< pitch standard deviation in degrees, get by dual noval gps
+        bool have_heading_accuracy:1;       ///< does GPS give heading accuracy? Set to true only once available.
+        bool have_pitch_accuracy:1;         ///< does GPS give pitch accuracy? Set to true only once available.
     };
 
     /// Startup initialisation.
@@ -276,6 +283,34 @@ public:
     }
     uint16_t get_vdop() const {
         return get_vdop(primary_instance);
+    }
+
+    // heading in degrees
+    float get_heading(uint8_t instance) const {
+        return state[instance].heading;
+    }
+    float get_heading() const {
+        return get_heading(primary_instance);
+    }
+
+    // pitch in degrees
+    float get_pitch(uint8_t instance) const {
+        return state[instance].pitch;
+    }
+    float get_pitch() const {
+        return get_pitch(primary_instance);
+    }
+
+    // report heading accuracy
+    bool heading_accuracy(uint8_t instance, float &hacc) const;
+    bool heading_accuracy(float &hacc) const {
+        return heading_accuracy(primary_instance, hacc);
+    }
+
+    // report pitch accuracy
+    bool pitch_accuracy(uint8_t instance, float &pacc) const;
+    bool pitch_accuracy(float &pacc) const {
+        return pitch_accuracy(primary_instance, pacc);
     }
 
     // the time we got our last fix in system milliseconds. This is

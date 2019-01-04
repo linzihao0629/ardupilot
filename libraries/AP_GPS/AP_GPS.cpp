@@ -35,6 +35,7 @@
 #include "AP_GPS_UBLOX.h"
 #include "AP_GPS_MAV.h"
 #include "GPS_Backend.h"
+#include "AP_GPS_DUALNOVA.h"
 
 #if HAL_WITH_UAVCAN
 #include <AP_UAVCAN/AP_UAVCAN.h>
@@ -322,7 +323,25 @@ bool AP_GPS::vertical_accuracy(uint8_t instance, float &vacc) const
     return false;
 }
 
+bool AP_GPS::heading_accuracy(uint8_t instance, float &hacc) const
+{
+    if (state[instance].have_heading_accuracy)
+    {
+        hacc = state[instance].heading_accuracy;
+        return true;
+    }
+    return false;
+}
 
+bool AP_GPS::pitch_accuracy(uint8_t instance, float &pacc) const
+{
+    if (state[instance].have_pitch_accuracy)
+    {
+        pacc = state[instance].pitch_accuracy;
+        return true;
+    }
+    return false;
+}
 /**
    convert GPS week and milliseconds to unix epoch in milliseconds
  */
@@ -460,6 +479,10 @@ void AP_GPS::detect_instance(uint8_t instance)
 
     case GPS_TYPE_NOVA:
         new_gps = new AP_GPS_NOVA(*this, state[instance], _port[instance]);
+        break;
+
+    case GPS_TYPE_DUALNOVA:
+        new_gps = new AP_GPS_DUALNOVA(*this, state[instance], _port[instance]);
         break;
 
     default:

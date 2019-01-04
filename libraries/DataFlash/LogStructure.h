@@ -55,6 +55,8 @@ struct PACKED log_GPS {
     float    ground_speed;
     float    ground_course;
     float    vel_z;
+    float    heading;
+    float    pitch;
     uint8_t  used;
 };
 
@@ -66,6 +68,8 @@ struct PACKED log_GPA {
     uint16_t vacc;
     uint16_t sacc;
     uint8_t  have_vv;
+    uint16_t hd_acc;
+    uint16_t pt_acc;
     uint32_t sample_ms;
 };
 
@@ -824,12 +828,12 @@ struct PACKED log_Beacon {
 #define ESC_LABELS "TimeUS,RPM,Volt,Curr,Temp"
 #define ESC_FMT   "Qcccc"
 
-#define GPA_LABELS "TimeUS,VDop,HAcc,VAcc,SAcc,VV,SMS"
-#define GPA_FMT   "QCCCCBI"
+#define GPA_LABELS "TimeUS,VDop,HAcc,VAcc,SAcc,VV,HdAcc,PtAcc,SMS"
+#define GPA_FMT   "QCCCCBCCI"
 
 // see "struct GPS_State" and "Log_Write_GPS":
-#define GPS_LABELS "TimeUS,Status,GMS,GWk,NSats,HDop,Lat,Lng,Alt,Spd,GCrs,VZ,U"
-#define GPS_FMT   "QBIHBcLLefffB"
+#define GPS_LABELS "TimeUS,Status,GMS,GWk,NSats,HDop,Lat,Lng,Alt,Spd,GCrs,VZ,H,P,U"
+#define GPS_FMT   "QBIHBcLLefffffB"
 
 #define GYR_LABELS "TimeUS,SampleUS,GyrX,GyrY,GyrZ"
 #define GYR_FMT    "QQfff"
