@@ -18,6 +18,20 @@
 
 extern const AP_HAL::HAL& hal;
 
+#define DATAFLASH_LOGFILE 1
+
+#if DATAFLASH_LOGFILE
+#include <cstdio>
+ # define Debug(fmt, args ...)                  \
+do {                                            \
+    printf("%s:%d: " fmt "\n",     \
+                        __FUNCTION__, __LINE__, \
+                        ## args);               \
+    hal.scheduler->delay(1);                    \
+} while(0)
+#else
+ # define Debug(fmt, args ...)
+#endif
 
 /*
   read and print a log entry using the format strings from the given structure
@@ -250,6 +264,9 @@ void DataFlash_Class::Log_Write_GPS(const AP_GPS &gps, uint8_t i, uint64_t time_
         time_us = AP_HAL::micros64();
     }
     const struct Location &loc = gps.location(i);
+	Debug("Log_Write_GPS lat=%d\n", (int32_t)loc.lat );
+	Debug("Log_Write_GPS lng=%d\n", (int32_t)loc.lng );
+	Debug("Log_Write_GPS alt=%d\n", (int32_t)loc.alt);
     struct log_GPS pkt = {
         LOG_PACKET_HEADER_INIT((uint8_t)(LOG_GPS_MSG+i)),
         time_us       : time_us,
@@ -264,15 +281,19 @@ void DataFlash_Class::Log_Write_GPS(const AP_GPS &gps, uint8_t i, uint64_t time_
         ground_speed  : gps.ground_speed(i),
         ground_course : gps.ground_course(i),
         vel_z         : gps.velocity(i).z,
+        heading       : gps.get_heading(i),
+        pitch         : gps.get_pitch(i),
         used          : (uint8_t)(gps.primary_sensor() == i)
     };
     WriteBlock(&pkt, sizeof(pkt));
 
     /* write auxiliary accuracy information as well */
-    float hacc = 0, vacc = 0, sacc = 0;
+    float hacc = 0, vacc = 0, sacc = 0, hdacc = 0, ptacc = 0;
     gps.horizontal_accuracy(i, hacc);
     gps.vertical_accuracy(i, vacc);
     gps.speed_accuracy(i, sacc);
+    gps.heading_accuracy(i, hdacc);
+    gps.pitch_accuracy(i, ptacc);
     struct log_GPA pkt2 = {
         LOG_PACKET_HEADER_INIT((uint8_t)(LOG_GPA_MSG+i)),
         time_us       : time_us,
@@ -281,6 +302,8 @@ void DataFlash_Class::Log_Write_GPS(const AP_GPS &gps, uint8_t i, uint64_t time_
         vacc          : (uint16_t)MIN((vacc*100), UINT16_MAX),
         sacc          : (uint16_t)MIN((sacc*100), UINT16_MAX),
         have_vv       : (uint8_t)gps.have_vertical_velocity(i),
+        hd_acc        : (uint16_t)MIN((hdacc * 100), UINT16_MAX),
+        pt_acc        : (uint16_t)MIN((ptacc * 100), UINT16_MAX),
         sample_ms     : gps.last_message_time_ms(i)
     };
     WriteBlock(&pkt2, sizeof(pkt2));

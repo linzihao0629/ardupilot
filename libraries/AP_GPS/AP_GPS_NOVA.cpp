@@ -23,7 +23,7 @@
 
 extern const AP_HAL::HAL& hal;
 
-#define NOVA_DEBUGGING 0
+#define NOVA_DEBUGGING 1
 
 #if NOVA_DEBUGGING
 #include <cstdio>
@@ -51,6 +51,8 @@ AP_GPS_NOVA::AP_GPS_NOVA(AP_GPS &_gps, AP_GPS::GPS_State &_state,
     
     port->write((const uint8_t*)init_str, strlen(init_str));
     port->write((const uint8_t*)init_str1, strlen(init_str1));
+    Debug("init_str= %s\n", init_str);
+    Debug("init_str1= %s\n", init_str1);
 }
 
 // Process all bytes available from the stream
@@ -59,6 +61,7 @@ bool
 AP_GPS_NOVA::read(void)
 {
     uint32_t now = AP_HAL::millis();
+	Debug("_init_blob_index= %u\n", _init_blob_index);
 
     if (_init_blob_index < (sizeof(_initialisation_blob) / sizeof(_initialisation_blob[0]))) {
         const char *init_str = _initialisation_blob[_init_blob_index];
@@ -199,6 +202,9 @@ AP_GPS_NOVA::process_message(void)
         state.location.lat = (int32_t) (bestposu.lat * (double)1e7);
         state.location.lng = (int32_t) (bestposu.lng * (double)1e7);
         state.location.alt = (int32_t) (bestposu.hgt * 100);
+		Debug("NOVA lat=%d\n", (int32_t)state.location.lat );
+		Debug("NOVA lng=%d\n", (int32_t)state.location.lng );
+		Debug("NOVA alt=%d\n", (int32_t)state.location.alt );
 
         state.num_sats = bestposu.svsused;
 
